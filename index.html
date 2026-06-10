@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0"
+		/>
+		<title>Baristas - Café Exquisito con Supabase</title>
+		<link rel="stylesheet" href="styles.css" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	</head>
+	<body>
+		<header>
+			<div class="container-hero">
+				<div class="container hero">
+					<div class="customer-support">
+						<i class="fa-solid fa-headset"></i>
+						<div class="content-customer-support">
+							<span class="text">Soporte al cliente</span>
+							<span class="number">123-456-7890</span>
+						</div>
+					</div>
+
+					<div class="container-logo">
+						<i class="fa-solid fa-mug-hot"></i>
+						<h1 class="logo"><a href="/">Baristas</a></h1>
+					</div>
+
+					<div class="container-user">
+						<!-- Botón de Usuario -->
+						<i class="fa-solid fa-user" id="user-btn"></i>
+						<!-- Indicación de estado de usuario cuando se ingresa (inyectado dinámicamente) -->
+						
+						<!-- Botón de Carrito -->
+						<i class="fa-solid fa-basket-shopping" id="cart-btn"></i>
+						<div class="content-shopping-cart" id="cart-text-btn">
+							<span class="text">Carrito</span>
+							<span class="number" id="cart-count">(0)</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container-navbar">
+				<nav class="navbar container">
+					<i class="fa-solid fa-bars" id="menu-bars-btn"></i>
+					<ul class="menu" id="nav-menu">
+						<li><a href="#">Inicio</a></li>
+						<li><a href="#">Moca Helado</a></li>
+						<li><a href="#">Expreso</a></li>
+						<li><a href="#">Capuchino</a></li>
+						<li><a href="#">Más</a></li>
+						<li><a href="#">Blog</a></li>
+					</ul>
+
+					<form class="search-form">
+						<input type="search" placeholder="Buscar..." />
+						<button class="btn-search">
+							<i class="fa-solid fa-magnifying-glass"></i>
+						</button>
+					</form>
+				</nav>
+			</div>
+		</header>
+
+		<section class="banner">
+			<div class="content-banner">
+				<p>Café Delicioso</p>
+				<h2>100% Natural <br />Café Fresco</h2>
+				<a href="#">Comprar ahora</a>
+			</div>
+		</section>
+
+		<main class="main-content">
+			<section class="container container-features">
+				<div class="card-feature">
+					<i class="fa-solid fa-plane-up"></i>
+					<div class="feature-content">
+						<span>Envío gratuito a nivel mundial</span>
+						<p>En pedido superior a $150</p>
+					</div>
+				</div>
+				<div class="card-feature">
+					<i class="fa-solid fa-wallet"></i>
+					<div class="feature-content">
+						<span>Contrareembolso</span>
+						<p>100% garantía de reembolso</p>
+					</div>
+				</div>
+				<div class="card-feature">
+					<i class="fa-solid fa-gift"></i>
+					<div class="feature-content">
+						<span>Tarjeta regalo especial</span>
+						<p>Ofrece bonos especiales con regalo</p>
+					</div>
+				</div>
+				<div class="card-feature">
+					<i class="fa-solid fa-headset"></i>
+					<div class="feature-content">
+						<span>Servicio al cliente 24/7</span>
+						<p>LLámenos 24/7 al 123-456-7890</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="container top-categories">
+				<h1 class="heading-1">Mejores Categorías</h1>
+				<div class="container-categories">
+					<div class="card-category category-moca">
+						<p>Café moca</p>
+						<span>Ver más</span>
+					</div>
+					<div class="card-category category-expreso">
+						<p>Expreso Americano</p>
+						<span>Ver más</span>
+					</div>
+					<div class="card-category category-capuchino">
+						<p>Capuchino</p>
+						<span>Ver más</span>
+					</div>
+				</div>
+			</section>
+
+			<section class="container top-products">
+				<h1 class="heading-1">Mejores Productos</h1>
+
+				<div class="container-options">
+					<span class="active">Destacados</span>
+					<span>Más recientes</span>
+					<span>Mejores Vendidos</span>
+				</div>
+
+				<div class="container-products" id="products-grid">
+					<!-- Carga dinámica desde Supabase / localStorage -->
+					<div style="grid-column: 1/-1; text-align: center; padding: 5rem 0; font-size: 1.6rem; color: #777;">
+						<i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1.5rem; display: block;"></i>
+						Cargando productos...
+					</div>
+				</div>
+			</section>
+
+			<section class="gallery">
+				<img src="https://images.unsplash.com/photo-1507133750040-4a8f57021571?q=80&w=400&auto=format&fit=crop" alt="Gallery Img1" class="gallery-img-1" />
+				<img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=400&auto=format&fit=crop" alt="Gallery Img2" class="gallery-img-2" />
+				<img src="https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=400&auto=format&fit=crop" alt="Gallery Img3" class="gallery-img-3" />
+				<img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=400&auto=format&fit=crop" alt="Gallery Img4" class="gallery-img-4" />
+				<img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=400&auto=format&fit=crop" alt="Gallery Img5" class="gallery-img-5" />
+			</section>
+
+			<section class="container specials">
+				<h1 class="heading-1">Especiales</h1>
+
+				<div class="container-products" id="specials-grid">
+					<!-- Carga dinámica desde Supabase / localStorage -->
+					<div style="grid-column: 1/-1; text-align: center; padding: 5rem 0; font-size: 1.6rem; color: #777;">
+						<i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1.5rem; display: block;"></i>
+						Cargando productos especiales...
+					</div>
+				</div>
+			</section>
+
+			<section class="container blogs">
+				<h1 class="heading-1">Últimos Blogs</h1>
+
+				<div class="container-blogs">
+					<div class="card-blog">
+						<div class="container-img">
+							<img src="https://images.unsplash.com/photo-1517256064527-09c53b2d0bc6?q=80&w=600&auto=format&fit=crop" alt="Imagen Blog 1" />
+							<div class="button-group-blog">
+								<span>
+									<i class="fa-solid fa-magnifying-glass"></i>
+								</span>
+								<span>
+									<i class="fa-solid fa-link"></i>
+								</span>
+							</div>
+						</div>
+						<div class="content-blog">
+							<h3>Lorem, ipsum dolor sit</h3>
+							<span>29 Noviembre 2022</span>
+							<p>
+								Lorem ipsum dolor sit amet consectetur adipisicing
+								elit. Iste, molestiae! Ratione et, dolore ipsum
+								quaerat iure illum reprehenderit non maxime amet dolor
+								voluptas facilis corporis, consequatur eius est sunt
+								suscipit?
+							</p>
+							<div class="btn-read-more">Leer más</div>
+						</div>
+					</div>
+					<div class="card-blog">
+						<div class="container-img">
+							<img src="https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=600&auto=format&fit=crop" alt="Imagen Blog 2" />
+							<div class="button-group-blog">
+								<span>
+									<i class="fa-solid fa-magnifying-glass"></i>
+								</span>
+								<span>
+									<i class="fa-solid fa-link"></i>
+								</span>
+							</div>
+						</div>
+						<div class="content-blog">
+							<h3>Lorem, ipsum dolor sit</h3>
+							<span>29 Noviembre 2022</span>
+							<p>
+								Lorem ipsum dolor sit amet consectetur adipisicing
+								elit. Iste, molestiae! Ratione et, dolore ipsum
+								quaerat iure illum reprehenderit non maxime amet dolor
+								voluptas facilis corporis, consequatur eius est sunt
+								suscipit?
+							</p>
+							<div class="btn-read-more">Leer más</div>
+						</div>
+					</div>
+					<div class="card-blog">
+						<div class="container-img">
+							<img src="https://images.unsplash.com/photo-1507226983735-a838615193b0?q=80&w=600&auto=format&fit=crop" alt="Imagen Blog 3" />
+							<div class="button-group-blog">
+								<span>
+									<i class="fa-solid fa-magnifying-glass"></i>
+								</span>
+								<span>
+									<i class="fa-solid fa-link"></i>
+								</span>
+							</div>
+						</div>
+						<div class="content-blog">
+							<h3>Lorem, ipsum dolor sit</h3>
+							<span>29 Noviembre 2022</span>
+							<p>
+								Lorem ipsum dolor sit amet consectetur adipisicing
+								elit. Iste, molestiae! Ratione et, dolore ipsum
+								quaerat iure illum reprehenderit non maxime amet dolor
+								voluptas facilis corporis, consequatur eius est sunt
+								suscipit?
+							</p>
+							<div class="btn-read-more">Leer más</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer class="footer">
+			<div class="container container-footer">
+				<div class="menu-footer">
+					<div class="contact-info">
+						<p class="title-footer">Información de Contacto</p>
+						<ul>
+							<li>
+								Dirección: 71 Pennington Lane Vernon Rockville, CT
+								06066
+							</li>
+							<li>Teléfono: 123-456-7890</li>
+							<li>Fax: 55555300</li>
+							<li>EmaiL: baristas@support.com</li>
+						</ul>
+						<div class="social-icons">
+							<span class="facebook">
+								<i class="fa-brands fa-facebook-f"></i>
+							</span>
+							<span class="twitter">
+								<i class="fa-brands fa-twitter"></i>
+							</span>
+							<span class="youtube">
+								<i class="fa-brands fa-youtube"></i>
+							</span>
+							<span class="pinterest">
+								<i class="fa-brands fa-pinterest-p"></i>
+							</span>
+							<span class="instagram">
+								<i class="fa-brands fa-instagram"></i>
+							</span>
+						</div>
+					</div>
+
+					<div class="information">
+						<p class="title-footer">Información</p>
+						<ul>
+							<li><a href="#">Acerca de Nosotros</a></li>
+							<li><a href="#">Información Delivery</a></li>
+							<li><a href="#">Politicas de Privacidad</a></li>
+							<li><a href="#">Términos y condiciones</a></li>
+							<li><a href="#">Contactános</a></li>
+						</ul>
+					</div>
+
+					<div class="my-account">
+						<p class="title-footer">Mi cuenta</p>
+
+						<ul>
+							<li><a href="#">Mi cuenta</a></li>
+							<li><a href="#">Historial de ordenes</a></li>
+							<li><a href="#">Lista de deseos</a></li>
+							<li><a href="#">Boletín</a></li>
+							<li><a href="#">Reembolsos</a></li>
+						</ul>
+					</div>
+
+					<div class="newsletter">
+						<p class="title-footer">Boletín informativo</p>
+
+						<div class="content">
+							<p>
+								Suscríbete a nuestros boletines ahora y mantente al
+								día con nuevas colecciones y ofertas exclusivas.
+							</p>
+							<input type="email" placeholder="Ingresa el correo aquí...">
+							<button>Suscríbete</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="copyright">
+					<p>
+						Desarrollado por Programación para el mundo &copy; 2022
+					</p>
+
+					<!-- Enlace alternativo para imagen de métodos de pago -->
+					<img src="https://raw.githubusercontent.com/a-drian/e-commerce-payment-icons/master/assets/card-payment-methods.png" alt="Pagos" style="max-height: 40px; width: auto; object-fit: contain;">
+				</div>
+			</div>
+		</footer>
+
+		<!-- ==========================================
+		     COMPONENTE DEL CARRITO DE COMPRAS (DRAWER)
+		     ========================================== -->
+		<div class="baristas-overlay" id="baristas-overlay"></div>
+
+		<div class="cart-drawer" id="cart-drawer">
+			<div class="cart-drawer-header">
+				<h2><i class="fa-solid fa-basket-shopping"></i> Tu Carrito</h2>
+				<button class="close-btn" id="cart-close-btn">&times;</button>
+			</div>
+			<div class="cart-drawer-items" id="cart-items-container">
+				<!-- Se rellenará dinámicamente con JS -->
+			</div>
+			<div class="cart-drawer-footer">
+				<div class="cart-total-row">
+					<span class="cart-total-label">Total:</span>
+					<span class="cart-total-value" id="cart-total-price">$0.00</span>
+				</div>
+				<button class="checkout-btn" id="checkout-btn">Finalizar Compra</button>
+			</div>
+		</div>
+
+		<!-- ==========================================
+		     COMPONENTE DE CUENTA DE USUARIO (MODAL)
+		     ========================================== -->
+		<div class="user-modal" id="user-modal">
+			<button class="close-btn close-btn-modal" id="user-close-btn">&times;</button>
+			
+			<!-- Pestañas para cambiar entre Login y Registro -->
+			<div class="user-modal-tabs" id="user-modal-tabs">
+				<button class="tab-btn active" data-tab="login-form">Iniciar Sesión</button>
+				<button class="tab-btn" data-tab="register-form">Registrarse</button>
+			</div>
+
+			<div class="user-modal-content">
+				<!-- Formulario de Iniciar Sesión -->
+				<form id="login-form" class="auth-form active">
+					<h3>Bienvenido de nuevo</h3>
+					<div class="form-group">
+						<label for="login-email">Correo Electrónico</label>
+						<input type="email" id="login-email" required placeholder="tu@correo.com">
+					</div>
+					<div class="form-group">
+						<label for="login-password">Contraseña</label>
+						<input type="password" id="login-password" required placeholder="••••••••">
+					</div>
+					<button type="submit" class="auth-submit-btn">Ingresar</button>
+					<p class="form-toggle-prompt">¿No tienes cuenta? <span id="switch-to-register">Regístrate aquí</span></p>
+				</form>
+
+				<!-- Formulario de Registro -->
+				<form id="register-form" class="auth-form">
+					<h3>Crear una cuenta</h3>
+					<div class="form-group">
+						<label for="reg-name">Nombre Completo</label>
+						<input type="text" id="reg-name" required placeholder="Ej. Juan Pérez">
+					</div>
+					<div class="form-group">
+						<label for="reg-email">Correo Electrónico</label>
+						<input type="email" id="reg-email" required placeholder="tu@correo.com">
+					</div>
+					<div class="form-group">
+						<label for="reg-password">Contraseña</label>
+						<input type="password" id="reg-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+					</div>
+					<div class="form-group">
+						<label for="reg-password-confirm">Confirmar Contraseña</label>
+						<input type="password" id="reg-password-confirm" required minlength="6" placeholder="Repite tu contraseña">
+					</div>
+					<button type="submit" class="auth-submit-btn">Registrarse</button>
+					<p class="form-toggle-prompt">¿Ya tienes cuenta? <span id="switch-to-login">Inicia sesión aquí</span></p>
+				</form>
+
+				<!-- Menú de Cuenta cuando el usuario ya ha iniciado sesión -->
+				<div id="user-profile-menu" class="user-logged-in-menu">
+					<div class="user-profile-header">
+						<div class="user-profile-avatar" id="user-avatar-initials">U</div>
+						<div class="user-profile-info">
+							<span class="user-profile-name" id="user-profile-name">Nombre de Usuario</span>
+							<span class="user-profile-email" id="user-profile-email">usuario@correo.com</span>
+						</div>
+					</div>
+					<div class="user-logged-actions">
+						<button class="user-logged-btn">
+							<i class="fa-solid fa-list-check"></i> Mis Pedidos
+						</button>
+						<button class="user-logged-btn">
+							<i class="fa-solid fa-gear"></i> Configuración de Cuenta
+						</button>
+						<button class="user-logged-btn logout-btn" id="logout-btn">
+							<i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Contenedor para notificaciones Toast -->
+		<div class="toast-container" id="toast-container"></div>
+
+		<!-- SDK de Supabase -->
+		<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+		
+		<!-- Archivos de Lógica -->
+		<script src="config.js"></script>
+		<script src="app.js"></script>
+	</body>
+</html>
