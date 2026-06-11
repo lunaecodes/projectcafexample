@@ -561,16 +561,6 @@ async function registerUser(name, email, password) {
             }
             
             if (data.user) {
-                // El perfil se crea aquí solo si NO requiere confirmación (ej. en modo desarrollo)
-                const { error: profileError } = await supabaseClient
-                    .from('perfiles')
-                    .insert({
-                        id: data.user.id,
-                        nombre_completo: name,
-                        direccion: '',
-                        telefono: ''
-                    });
-                if (profileError) console.error("Error al guardar perfil:", profileError);
                 
                 showToast(`¡Cuenta creada! Revisa tu email para confirmación.`, 'success');
                 closeUserModal();
