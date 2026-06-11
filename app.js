@@ -1,7 +1,3 @@
-// ==========================================================================
-// BARISTAS - LÓGICA DE APLICACIÓN CON INTEGRACIÓN DE SUPABASE
-// ==========================================================================
-
 // --- COMPROBACIÓN DE CONFIGURACIÓN DE SUPABASE ---
 const isSupabaseConfigured = typeof SUPABASE_URL !== 'undefined' && 
                              typeof SUPABASE_ANON_KEY !== 'undefined' && 
@@ -35,8 +31,8 @@ const MOCK_PRODUCTS = [
     { id: 2, nombre: 'Café Inglés', descripcion: 'Mezcla especial de granos ingleses', precio: 5.70, precio_original: 7.30, descuento: 22, calificacion: 3.0, imagen_url: 'img/cafe-ingles.jpg', disponible: true },
     { id: 3, nombre: 'Café Australiano', descripcion: 'Flat white estilo australiano', precio: 3.20, precio_original: null, descuento: null, calificacion: 5.0, imagen_url: 'img/cafe-australiano.jpg', disponible: true },
     { id: 4, nombre: 'Café Helado', descripcion: 'Refrescante café con hielo y leche', precio: 5.60, precio_original: null, descuento: null, calificacion: 4.0, imagen_url: 'img/cafe-helado.jpg', disponible: true },
-    { id: 5, nombre: 'Café Viena', descripcion: 'Café con crema batida y canela', precio: 3.85, precio_original: 5.50, descuento: 30, calificacion: 5.0, imagen_url: 'img/cafe-viena.jpg', disponible: true },
-    { id: 6, nombre: 'Café Liqueurs', descripcion: 'Café con licor de avellana', precio: 5.60, precio_original: null, descuento: null, calificacion: 4.0, imagen_url: 'img/cafe-liqueurs.jpg', disponible: true }
+    { id: 6, nombre: 'Café Viena', descripcion: 'Café con crema batida y canela', precio: 3.85, precio_original: 5.50, descuento: 30, calificacion: 5.0, imagen_url: 'img/cafe-viena.jpg', disponible: true },
+    { id: 7, nombre: 'Café Liqueurs', descripcion: 'Café con licor de avellana', precio: 5.60, precio_original: null, descuento: null, calificacion: 4.0, imagen_url: 'img/cafe-liqueurs.jpg', disponible: true }
 ];
 
 // --- ELEMENTOS DEL DOM ---
@@ -64,11 +60,6 @@ const logoutBtn = document.getElementById('logout-btn');
 const userAvatarInitials = document.getElementById('user-avatar-initials');
 const userProfileName = document.getElementById('user-profile-name');
 const userProfileEmail = document.getElementById('user-profile-email');
-
-const myOrdersBtn = document.getElementById('my-orders-btn');
-const orderHistoryView = document.getElementById('order-history-view');
-const orderHistoryList = document.getElementById('order-history-list');
-const orderHistoryBackBtn = document.getElementById('order-history-back-btn');
 
 const overlay = document.getElementById('baristas-overlay');
 const toastContainer = document.getElementById('toast-container');
@@ -193,8 +184,8 @@ function renderProductsUI(productsList) {
             productsGrid.insertAdjacentHTML('beforeend', productHtml);
         }
         
-        // Renderizar en "Especiales" (Mapeamos a 1, 2, 5, 6)
-        if ([1, 2, 5, 6].includes(Number(product.id))) {
+        // Renderizar en "Especiales" (Mapeamos a 1, 2, 6, 7)
+        if ([1, 2, 6, 7].includes(Number(product.id))) {
             specialsGrid.insertAdjacentHTML('beforeend', productHtml);
         }
     });
@@ -470,10 +461,6 @@ checkoutBtn.addEventListener('click', async () => {
                 
             if (orderError) throw orderError;
             
-            if (!orderData || orderData.length === 0) {
-                throw new Error("El pedido fue registrado, pero no se pudieron retornar los datos. Esto generalmente ocurre cuando falta una política RLS de tipo 'SELECT' en la tabla 'pedidos' para los usuarios autenticados.");
-            }
-            
             const orderId = orderData[0].id;
             
             // 2. Insertar Detalles del Pedido
@@ -503,37 +490,12 @@ checkoutBtn.addEventListener('click', async () => {
             return;
         } catch (err) {
             console.error("Error al procesar la compra en base de datos:", err);
-            const errMsg = err.message || "Error desconocido al guardar en la nube.";
-            showToast(`Error al guardar en la nube: ${errMsg}`, "error");
+            showToast("No se pudo registrar la compra en la nube. Revisa la consola.", "error");
             return;
         }
     }
     
     // Fallback Local
-    const localOrders = JSON.parse(localStorage.getItem('baristas_orders')) || [];
-    const newOrderId = localOrders.length + 1;
-    const newOrder = {
-        id: newOrderId,
-        usuario_email: currentUser ? currentUser.email : 'anonimo',
-        fecha: new Date().toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
-        total: total,
-        estado: 'completado',
-        metodo_pago: 'efectivo',
-        items: cart.map(item => ({
-            nombre: item.name,
-            cantidad: item.quantity,
-            precio_unitario: item.price
-        }))
-    };
-    localOrders.unshift(newOrder);
-    localStorage.setItem('baristas_orders', JSON.stringify(localOrders));
-
     cart = [];
     localStorage.removeItem('baristas_cart');
     updateCartBadge();
@@ -571,7 +533,7 @@ function updateHeaderUserUI() {
     }
 }
 
-async function registerUser(name, email, password, phone, address) {
+async function registerUser(name, email, password) {
     if (supabaseClient) {
         try {
             // Registrar en Supabase Auth
@@ -586,16 +548,27 @@ async function registerUser(name, email, password, phone, address) {
             });
             
             if (error) throw error;
+
+            // Cuando la confirmación de email está activa, Supabase devuelve
+            // data.user con identities vacío hasta que el usuario confirme.
+            // En ese caso solo avisamos y no intentamos insertar el perfil todavía.
+            const needsConfirmation = data.user && data.user.identities && data.user.identities.length === 0;
+
+            if (needsConfirmation) {
+                showToast(`¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.`, 'success');
+                closeUserModal();
+                return true;
+            }
             
             if (data.user) {
-                // Crear el registro de perfil
+                // El perfil se crea aquí solo si NO requiere confirmación (ej. en modo desarrollo)
                 const { error: profileError } = await supabaseClient
                     .from('perfiles')
                     .insert({
                         id: data.user.id,
                         nombre_completo: name,
-                        direccion: address,
-                        telefono: phone
+                        direccion: '',
+                        telefono: ''
                     });
                 if (profileError) console.error("Error al guardar perfil:", profileError);
                 
@@ -617,7 +590,7 @@ async function registerUser(name, email, password, phone, address) {
         return false;
     }
     
-    const newUser = { name, email, password, phone, address };
+    const newUser = { name, email, password };
     localUsers.push(newUser);
     localStorage.setItem('baristas_users', JSON.stringify(localUsers));
     
@@ -717,7 +690,6 @@ function openUserModal() {
         loginForm.classList.remove('active');
         registerForm.classList.remove('active');
         userProfileMenu.classList.add('active');
-        orderHistoryView.classList.remove('active');
         
         userProfileName.textContent = currentUser.name;
         userProfileEmail.textContent = currentUser.email;
@@ -725,7 +697,6 @@ function openUserModal() {
     } else {
         userModalTabs.style.display = 'flex';
         userProfileMenu.classList.remove('active');
-        orderHistoryView.classList.remove('active');
         switchTab('login-form');
     }
     
@@ -761,143 +732,6 @@ function switchTab(tabId) {
     }
 }
 
-// Controladores para la Vista de Historial de Pedidos
-function showOrderHistoryView() {
-    userProfileMenu.classList.remove('active');
-    orderHistoryView.classList.add('active');
-    loadOrderHistory();
-}
-
-function hideOrderHistoryView() {
-    orderHistoryView.classList.remove('active');
-    userProfileMenu.classList.add('active');
-}
-
-async function loadOrderHistory() {
-    orderHistoryList.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 3rem 0; font-size: 1.4rem; color: #777;">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.2rem; color: var(--primary-color); margin-bottom: 1rem; display: block;"></i>
-            Cargando historial de pedidos...
-        </div>
-    `;
-    
-    if (supabaseClient && currentUser) {
-        try {
-            // 1. Obtener los pedidos del usuario en orden descendente
-            const { data: pedidos, error: pedidosError } = await supabaseClient
-                .from('pedidos')
-                .select('*')
-                .eq('usuario_id', currentUser.id)
-                .order('created_at', { ascending: false });
-                
-            if (pedidosError) throw pedidosError;
-            
-            if (!pedidos || pedidos.length === 0) {
-                renderOrderHistory([]);
-                return;
-            }
-            
-            // 2. Obtener los detalles de los pedidos y nombres de productos
-            const pedidoIds = pedidos.map(p => p.id);
-            const { data: detalles, error: detallesError } = await supabaseClient
-                .from('detalles_pedido')
-                .select('*, products(nombre)')
-                .in('pedido_id', pedidoIds);
-                
-            if (detallesError) throw detallesError;
-            
-            // 3. Mapear y agrupar detalles por pedido
-            const ordersMap = pedidos.map(pedido => {
-                const items = (detalles || [])
-                    .filter(d => d.pedido_id === pedido.id)
-                    .map(d => ({
-                        nombre: d.products ? d.products.nombre : 'Café Exquisito',
-                        cantidad: d.cantidad,
-                        precio_unitario: parseFloat(d.precio_unitario)
-                    }));
-                    
-                return {
-                    id: pedido.id,
-                    fecha: new Date(pedido.created_at).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }),
-                    total: parseFloat(pedido.total),
-                    estado: pedido.estado,
-                    metodo_pago: pedido.metodo_pago,
-                    items: items
-                };
-            });
-            
-            renderOrderHistory(ordersMap);
-        } catch (err) {
-            console.error("Error al cargar historial desde Supabase:", err);
-            orderHistoryList.innerHTML = `
-                <div class="no-orders-message">
-                    <i class="fa-solid fa-triangle-exclamation" style="color: #e05d5d;"></i>
-                    <p>No se pudo cargar el historial.<br><small>${err.message || ''}</small></p>
-                </div>
-            `;
-        }
-        return;
-    }
-    
-    // Fallback Local
-    const localOrders = JSON.parse(localStorage.getItem('baristas_orders')) || [];
-    const userEmail = currentUser ? currentUser.email : 'anonimo';
-    const userLocalOrders = localOrders.filter(o => o.usuario_email === userEmail);
-    
-    renderOrderHistory(userLocalOrders);
-}
-
-function renderOrderHistory(orders) {
-    orderHistoryList.innerHTML = '';
-    
-    if (orders.length === 0) {
-        orderHistoryList.innerHTML = `
-            <div class="no-orders-message">
-                <i class="fa-solid fa-mug-hot"></i>
-                <p>No tienes pedidos registrados todavía.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    orders.forEach(order => {
-        const orderCard = document.createElement('div');
-        orderCard.className = 'order-card';
-        
-        let itemsHtml = '';
-        order.items.forEach(item => {
-            itemsHtml += `
-                <div class="order-item-detail">
-                    <span class="order-item-name">${item.nombre}</span>
-                    <span class="order-item-qty-price">${item.cantidad} x $${item.precio_unitario.toFixed(2)}</span>
-                </div>
-            `;
-        });
-        
-        orderCard.innerHTML = `
-            <div class="order-card-header">
-                <span class="order-id">Pedido #${order.id}</span>
-                <span class="order-date">${order.fecha}</span>
-            </div>
-            <div class="order-card-body">
-                ${itemsHtml}
-            </div>
-            <div class="order-card-footer">
-                <span class="order-status ${order.estado}">${order.estado}</span>
-                <span class="order-total">Total: $${order.total.toFixed(2)}</span>
-            </div>
-        `;
-        
-        orderHistoryList.appendChild(orderCard);
-    });
-}
-
 // Bindeos simples de apertura y cierre
 cartBtn.addEventListener('click', openCart);
 cartTextBtn.addEventListener('click', openCart);
@@ -913,16 +747,11 @@ tabButtons.forEach(button => {
 switchToRegisterSpan.addEventListener('click', () => switchTab('register-form'));
 switchToLoginSpan.addEventListener('click', () => switchTab('login-form'));
 
-myOrdersBtn.addEventListener('click', showOrderHistoryView);
-orderHistoryBackBtn.addEventListener('click', hideOrderHistoryView);
-
 // Eventos submit de formularios
 registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
-    const phone = document.getElementById('reg-phone').value.trim();
-    const address = document.getElementById('reg-address').value.trim();
     const password = document.getElementById('reg-password').value;
     const confirmPassword = document.getElementById('reg-password-confirm').value;
     
@@ -931,7 +760,7 @@ registerForm.addEventListener('submit', async (e) => {
         return;
     }
     
-    if (await registerUser(name, email, password, phone, address)) {
+    if (await registerUser(name, email, password)) {
         registerForm.reset();
     }
 });
