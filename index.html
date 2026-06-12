@@ -344,6 +344,7 @@
 					<span class="cart-total-value" id="cart-total-price">$0.00</span>
 				</div>
 				<button class="checkout-btn" id="checkout-btn">Finalizar Compra</button>
+				<div id="paypal-button-container" style="display:none;" margin-top:1rem;"></div>
 			</div>
 		</div>
 
@@ -446,10 +447,12 @@
 		<!-- Contenedor para notificaciones Toast -->
 		<div class="toast-container" id="toast-container"></div>
 
-		<!-- SDK de Supabase -->
+		<script src="https://www.paypla.com/sdk/js?client-id=ATOwgESBR7I8pdFCkCcdj2k8kwWcQxlchMnhvmuQ_ReXl2TaY1F24EgS_emxpvv17m9qhhXepqVSqX6E&currency=USD"></script>
+			
+		<!-- SDK de Spb -->
 		<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 		
-		<!-- Archivos de Lógica -->
+		<!-- Archivos de Logic -->
 		<script src="config.js"></script>
 		<script src="app.js"></script>
 	</body>
