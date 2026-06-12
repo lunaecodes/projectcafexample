@@ -443,65 +443,88 @@ checkoutBtn.addEventListener('click', async () => {
         showToast('El carrito está vacío', 'error');
         return;
     }
-    
-    const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    
-    if (supabaseClient && currentUser) {
-        try {
-            // 1. Insertar el Pedido
-            const { data: orderData, error: orderError } = await supabaseClient
-                .from('pedidos')
-                .insert({
-                    usuario_id: currentUser.id,
-                    total: total,
-                    metodo_pago: 'efectivo',
-                    estado: 'pendiente'
-                })
-                .select();
-                
-            if (orderError) throw orderError;
-            
-            const orderId = orderData[0].id;
-            
-            // 2. Insertar Detalles del Pedido
-            const orderDetails = cart.map(item => ({
-                pedido_id: orderId,
-                producto_id: Number(item.id),
-                cantidad: item.quantity,
-                precio_unitario: item.price
-            }));
-            
-            const { error: detailsError } = await supabaseClient
-                .from('detalles_pedido')
-                .insert(orderDetails);
-                
-            if (detailsError) throw detailsError;
-            
-            // 3. Vaciar Carrito en Supabase
-            await supabaseClient
-                .from('carrito')
-                .delete()
-                .eq('usuario_id', currentUser.id);
-                
-            cart = [];
-            updateCartBadge();
-            closeCart();
-            showToast('¡Pedido registrado con éxito en Supabase!', 'success');
-            return;
-        } catch (err) {
-            console.error("Error al procesar la compra en base de datos:", err);
-            showToast("No se pudo registrar la compra en la nube. Revisa la consola.", "error");
-            return;
-        }
+
+    // Verificar si el usuario tiene sesión activa
+    if (!currentUser) {
+        showToast('Debes iniciar sesión para finalizar tu compra', 'error');
+        openUserModal();
+        return;
     }
-    
-    // Fallback Local
-    cart = [];
-    localStorage.removeItem('baristas_cart');
-    updateCartBadge();
-    closeCart();
-    showToast('¡Compra local procesada con éxito!', 'success');
+
+    // Mostrar botón de PayPal --change
+    const paypalContainer = document.getElementById('paypal-button-container');
+    paypalContainer.style.display = 'block';
+    paypalContainer.innerHTML = '';
+
+    const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+    paypal.Buttons({
+        createOrder: (data, actions) => {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: total.toFixed(2),
+                        currency_code: 'USD'
+                    },
+                    description: 'Compra en Baristas Café'
+                }]
+            });
+        },
+        onApprove: async (data, actions) => {
+            const order = await actions.order.capture();
+            console.log('Pago aprobado:', order);
+
+            if (supabaseClient && currentUser) {
+                try {
+                    const { data: orderData, error: orderError } = await supabaseClient
+                        .from('pedidos')
+                        .insert({
+                            usuario_id: currentUser.id,
+                            total: total,
+                            metodo_pago: 'paypal',
+                            estado: 'pagado'
+                        })
+                        .select();
+
+                    if (orderError) throw orderError;
+
+                    const orderId = orderData[0].id;
+                    const orderDetails = cart.map(item => ({
+                        pedido_id: orderId,
+                        producto_id: Number(item.id),
+                        cantidad: item.quantity,
+                        precio_unitario: item.price
+                    }));
+
+                    await supabaseClient.from('detalles_pedido').insert(orderDetails);
+                    await supabaseClient.from('carrito').delete().eq('usuario_id', currentUser.id);
+
+                } catch (err) {
+                    console.error("Error al guardar pedido:", err);
+                }
+            }
+
+            cart = [];
+            localStorage.removeItem('baristas_cart');
+            updateCartBadge();
+            paypalContainer.style.display = 'none';
+            closeCart();
+            showToast('¡Pago exitoso! Gracias por tu compra 🎉', 'success');
+        },
+        onError: (err) => {
+            console.error('Error en PayPal:', err);
+            showToast('Hubo un error con el pago. Intenta de nuevo.', 'error');
+        },
+        onCancel: () => {
+            paypalContainer.style.display = 'none';
+            showToast('Pago cancelado.', 'info');
+        }
+    }).render('#paypal-button-container');
 });
+
+
+
+
 
 // ==========================================================================
 // REGISTRO E INICIO DE SESIÓN (AUTENTICACIÓN)
