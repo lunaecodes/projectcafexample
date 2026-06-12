@@ -716,10 +716,12 @@ function openUserModal() {
     userModal.classList.add('active');
     overlay.classList.add('active');
 }
-
-function closeUserModal() {
+//Change Formularios Clean
+function closeUserModal() { 
     userModal.classList.remove('active');
     overlay.classList.remove('active');
+    if (loginForm) loginForm.reset();
+    if (registerForm) registerForm.reset();
 }
 
 function closeAll() {
@@ -728,6 +730,8 @@ function closeAll() {
 }
 
 function switchTab(tabId) {
+  if (loginForm) loginForm.reset();
+    if (registerForm) registerForm.reset();
     tabButtons.forEach(btn => {
         if (btn.getAttribute('data-tab') === tabId) {
             btn.classList.add('active');
@@ -806,6 +810,11 @@ document.addEventListener('click', () => {
 // INICIALIZACIÓN DE LA APLICACIÓN
 // ==========================================================================
 (async function initApp() {
+  if (loginForm) loginForm.reset();
+  if (registerForm) registerForm.reset();
+  await loadproducts();
+
+  
     await loadProducts();
     
     if (supabaseClient) {
